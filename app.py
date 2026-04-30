@@ -15,8 +15,8 @@ st.set_page_config(
 st.title("📊 Análisis de Riesgo de Crédito")
 
 st.write(
-    "Sube un Excel con Balance y PyG para calcular ratios financieros "
-    "y generar un análisis de riesgo de crédito."
+    "Sube un Excel con Balance y PyG para generar un informe financiero "
+    "de análisis de riesgo de crédito."
 )
 
 uploaded_file = st.file_uploader(
@@ -28,8 +28,8 @@ if uploaded_file is not None:
     st.success("Archivo cargado correctamente.")
     st.write("Nombre del archivo:", uploaded_file.name)
 
-    if st.button("Analizar empresa"):
-        with st.spinner("Analizando estados financieros..."):
+    if st.button("Generar informe"):
+        with st.spinner("Generando informe financiero..."):
 
             tmp_path = None
 
@@ -42,55 +42,19 @@ if uploaded_file is not None:
                 # Llamamos al motor financiero
                 result = run_credit_risk_analysis(tmp_path)
 
-                st.success("Análisis completado.")
+                st.success("Informe generado correctamente.")
 
                 # =========================
-                # RESUMEN EJECUTIVO
+                # INFORME GENERADO
                 # =========================
-                st.header("Resumen ejecutivo")
-
-                col1, col2, col3 = st.columns(3)
-
-                with col1:
-                    st.metric(
-                        "Nivel de riesgo",
-                        result.get("risk_level", "No calculado")
-                    )
-
-                with col2:
-                    st.metric(
-                        "Score",
-                        result.get("risk_score", "No calculado")
-                    )
-
-                with col3:
-                    st.metric(
-                        "Calidad de datos",
-                        result.get("data_quality", "No calculado")
-                    )
+                st.header("Informe generado")
 
                 report_text = result.get("report_text")
 
                 if report_text:
-                    st.subheader("Análisis generado")
                     st.write(report_text)
-
-                # =========================
-                # RATIOS
-                # =========================
-                st.header("Ratios calculados")
-
-                ratios = result.get("ratios")
-
-                if isinstance(ratios, pd.DataFrame):
-                    st.dataframe(ratios, use_container_width=True)
-                elif isinstance(ratios, dict):
-                    try:
-                        st.dataframe(pd.DataFrame(ratios).T, use_container_width=True)
-                    except Exception:
-                        st.write(ratios)
                 else:
-                    st.info("Todavía no hay ratios calculados.")
+                    st.info("Todavía no se ha generado ningún informe.")
 
                 # =========================
                 # WARNINGS
@@ -106,9 +70,25 @@ if uploaded_file is not None:
                     st.success("No se han detectado warnings relevantes.")
 
                 # =========================
-                # DEBUG TÉCNICO
+                # RATIOS / DATOS TÉCNICOS
                 # =========================
-                with st.expander("Ver debug técnico"):
+                with st.expander("Ver ratios y datos técnicos"):
+                    ratios = result.get("ratios")
+
+                    st.subheader("Ratios calculados")
+
+                    if isinstance(ratios, pd.DataFrame):
+                        st.dataframe(ratios, use_container_width=True)
+                    elif isinstance(ratios, dict):
+                        try:
+                            st.dataframe(pd.DataFrame(ratios).T, use_container_width=True)
+                        except Exception:
+                            st.write(ratios)
+                    else:
+                        st.info("Todavía no hay ratios calculados.")
+
+                    st.subheader("Debug técnico")
+
                     ratios_debug_table = result.get("ratios_debug_table")
 
                     if isinstance(ratios_debug_table, pd.DataFrame):
@@ -138,7 +118,7 @@ if uploaded_file is not None:
                     st.info("Todavía no hay archivos generados para descargar.")
 
             except Exception as e:
-                st.error("Ha ocurrido un error durante el análisis.")
+                st.error("Ha ocurrido un error durante la generación del informe.")
                 st.exception(e)
 
             finally:
